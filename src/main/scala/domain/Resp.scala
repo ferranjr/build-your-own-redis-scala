@@ -2,13 +2,22 @@ package domain
 
 import domain.lexer.{Token, Tokenizer}
 
-sealed trait Resp
+sealed trait Resp {
+  def serialize: String = this match {
+    case Resp.SimpleString(value) => s"+$value\r\n"
+    case Resp.Error(value) => s"-$value\r\n"
+    case Resp.Integer(value) => s":$value\r\n"
+    case Resp.BulkString(value) => s"$$\r\n${value.length}$value\r\n"
+    case Resp.Arrays(values) => s"*${values.length}\r\n${values.mkString("\r\n")}"
+    case Resp.Null => "$-1\r\n"
+  }
+}
 
 object Resp {
   case class SimpleString(value: String) extends Resp
   case class Error(value: String) extends Resp
   case class Integer(value: Int) extends Resp
-  case class BulkStrings(value: String) extends Resp
+  case class BulkString(value: String) extends Resp
   case class Arrays(values: List[Resp]) extends Resp
   case object Null extends Resp
 }
@@ -46,10 +55,10 @@ object Parser {
     tokens match {
       case Token.Text(value) :: Token.NewLine :: tail =>
         if(value.length != size) Left(RespError.WrongSizedBulkString)
-        else Right((Resp.BulkStrings(value), tail))
+        else Right((Resp.BulkString(value), tail))
       case Token.NewLine :: tail =>
         if(size != 0) Left(RespError.WrongSizedBulkString)
-        else Right((Resp.BulkStrings(""), tail))
+        else Right((Resp.BulkString(""), tail))
     }
 
   private def parseNull(tokens: List[Token]): ParserResult[Resp] =

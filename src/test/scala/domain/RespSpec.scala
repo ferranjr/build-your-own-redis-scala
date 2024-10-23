@@ -37,26 +37,26 @@ class RespSpec
 
   it should "parse bulk strings" in {
     val result = Parser.parse("$3\r\nget\r\n").value
-    result shouldBe Resp.BulkStrings("get")
+    result shouldBe Resp.BulkString("get")
   }
 
   it should "parse empty bulk strings" in {
     val result = Parser.parse("$0\r\n\r\n").value
-    result shouldBe Resp.BulkStrings("")
+    result shouldBe Resp.BulkString("")
   }
 
   it should "parser array successfully" in {
     val result = Parser.parse("*2\r\n$4\r\necho\r\n$11\r\nhello world\r\n").value
     result shouldBe Resp.Arrays(List(
-      Resp.BulkStrings("echo"),
-      Resp.BulkStrings("hello world"),
+      Resp.BulkString("echo"),
+      Resp.BulkString("hello world"),
     ))
   }
 
   it should "parser array successfully example 2" in {
     val result = Parser.parse("*1\r\n$4\r\nping\r\n").value
     result shouldBe Resp.Arrays(List(
-      Resp.BulkStrings("ping"),
+      Resp.BulkString("ping"),
     ))
   }
 
